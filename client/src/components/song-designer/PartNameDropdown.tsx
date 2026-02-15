@@ -1,12 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import type { SongPart } from '../../types';
-
-function formatTime(seconds: number): string {
-  const m = Math.floor(seconds / 60);
-  const s = Math.floor(seconds % 60);
-  return `${m}:${s.toString().padStart(2, '0')}`;
-}
+import { formatTime } from '../../utils/formatTime';
 
 interface PartNameDropdownProps {
   anchorRef: React.RefObject<HTMLElement | null>;
@@ -16,7 +11,7 @@ interface PartNameDropdownProps {
   onClose: () => void;
 }
 
-export default function PartNameDropdown({ anchorRef, existingParts, currentName, onSelect, onClose }: PartNameDropdownProps) {
+export default function PartNameDropdown({ anchorRef, existingParts, currentName, onSelect, onClose }: PartNameDropdownProps): React.ReactNode {
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState(currentName);
   const inputRef = useRef<HTMLInputElement>(null);

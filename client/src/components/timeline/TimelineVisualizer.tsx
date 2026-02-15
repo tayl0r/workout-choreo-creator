@@ -10,11 +10,7 @@ function getWsScroller(container: HTMLDivElement | null): HTMLElement | null {
   return container?.firstElementChild?.shadowRoot?.querySelector('.scroll') as HTMLElement | null;
 }
 
-function formatTime(seconds: number): string {
-  const m = Math.floor(seconds / 60);
-  const s = Math.floor(seconds % 60);
-  return `${m}:${s.toString().padStart(2, '0')}`;
-}
+import { formatTime } from '../../utils/formatTime';
 
 async function filterBass(buffer: AudioBuffer): Promise<AudioBuffer> {
   const offlineCtx = new OfflineAudioContext(
@@ -88,7 +84,7 @@ interface TimelineVisualizerProps {
   songId: number;
 }
 
-function TimelineVisualizer({ songId }: TimelineVisualizerProps) {
+function TimelineVisualizer({ songId }: TimelineVisualizerProps): React.ReactNode {
   const waveformRef = useRef<HTMLDivElement>(null);
   const wavesurferRef = useRef<WaveSurfer | null>(null);
   const regionsRef = useRef<RegionsPlugin | null>(null);
@@ -531,19 +527,21 @@ function TimelineVisualizer({ songId }: TimelineVisualizerProps) {
   );
 }
 
+interface TransportButtonProps {
+  children: React.ReactNode;
+  onClick: () => void;
+  title: string;
+  disabled?: boolean;
+  accent?: boolean;
+}
+
 function TransportButton({
   children,
   onClick,
   title,
   disabled = false,
   accent = false,
-}: {
-  children: React.ReactNode;
-  onClick: () => void;
-  title: string;
-  disabled?: boolean;
-  accent?: boolean;
-}) {
+}: TransportButtonProps): React.ReactNode {
   return (
     <button
       onClick={onClick}

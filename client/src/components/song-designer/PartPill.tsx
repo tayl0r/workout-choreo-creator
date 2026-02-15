@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import type { SongPart, Stance } from '../../types';
+import { snapToBeat } from '../../utils/snapToBeat';
 import PartNameDropdown from './PartNameDropdown';
 
 const STANCE_COLORS: Record<Stance, { bg: string; border: string; text: string }> = {
@@ -8,28 +9,12 @@ const STANCE_COLORS: Record<Stance, { bg: string; border: string; text: string }
   Centered: { bg: 'rgba(0, 212, 170, 0.15)', border: '#00886a', text: '#00d4aa' },
 };
 
-function formatTime(seconds: number): string {
+/** Format seconds with tenths precision: m:ss.t */
+function formatTimePrecise(seconds: number): string {
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);
-  const ms = Math.floor((seconds % 1) * 10);
-  return `${m}:${s.toString().padStart(2, '0')}.${ms}`;
-}
-
-/** Binary search for the nearest beat to a given time. */
-function snapToBeat(time: number, beats: number[]): number {
-  if (beats.length === 0) return time;
-  let lo = 0;
-  let hi = beats.length - 1;
-  while (lo < hi) {
-    const mid = (lo + hi) >> 1;
-    if (beats[mid] < time) lo = mid + 1;
-    else hi = mid;
-  }
-  // Compare lo and lo-1 to find nearest
-  if (lo > 0 && Math.abs(beats[lo - 1] - time) < Math.abs(beats[lo] - time)) {
-    return beats[lo - 1];
-  }
-  return beats[lo];
+  const tenths = Math.floor((seconds % 1) * 10);
+  return `${m}:${s.toString().padStart(2, '0')}.${tenths}`;
 }
 
 export interface PartEntry {
@@ -55,12 +40,11 @@ export default function PartPill({
   onUpdate,
   onDelete,
   onNameSelect,
-}: PartPillProps) {
+}: PartPillProps): React.ReactNode {
   const { part, isSaved } = entry;
   const [showDropdown, setShowDropdown] = useState(false);
   const nameRef = useRef<HTMLDivElement>(null);
   const [dragging, setDragging] = useState<'left' | 'right' | 'move' | null>(null);
-  const [dragStart, setDragStart] = useState({ x: 0, startTime: 0, endTime: 0 });
   const [localTimes, setLocalTimes] = useState<{ startTime: number; endTime: number } | null>(null);
   const pillRef = useRef<HTMLDivElement>(null);
 
@@ -82,7 +66,6 @@ export default function PartPill({
       e.preventDefault();
       e.stopPropagation();
       setDragging(type);
-      setDragStart({ x: e.clientX, startTime: part.startTime, endTime: part.endTime });
       setLocalTimes({ startTime: part.startTime, endTime: part.endTime });
 
       const onMouseMove = (me: MouseEvent) => {
@@ -235,7 +218,7 @@ export default function PartPill({
         {/* Time range */}
         {width > 120 && (
           <span className="shrink-0 text-[10px] font-mono ml-auto" style={{ color: 'var(--text-secondary)' }}>
-            {formatTime(startTime)}&ndash;{formatTime(endTime)}
+            {formatTimePrecise(startTime)}&ndash;{formatTimePrecise(endTime)}
           </span>
         )}
 

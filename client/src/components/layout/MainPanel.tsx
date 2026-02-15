@@ -1,3 +1,4 @@
+import type { ActiveComponent } from '../../types';
 import { useAppStore } from '../../stores/appStore';
 import SongsView from '../songs/SongsView';
 import TimelineVisualizer from '../timeline/TimelineVisualizer';
@@ -17,41 +18,46 @@ const stubDescriptions: Record<string, { title: string; description: string }> =
   },
 };
 
-function MainPanel() {
-  const { activeComponent, selectedSongId } = useAppStore();
+function renderActiveComponent(activeComponent: ActiveComponent): React.ReactNode {
+  switch (activeComponent) {
+    case 'songs':
+      return <SongsView />;
+    case 'song-designer':
+      return <SongDesignerView />;
+    case 'moves':
+      return <MovesView />;
+    case 'debug':
+      return <DebugView />;
+    default:
+      return (
+        <StubComponent
+          title={stubDescriptions[activeComponent]?.title ?? activeComponent}
+          description={stubDescriptions[activeComponent]?.description ?? ''}
+        />
+      );
+  }
+}
 
-  const showTimeline = selectedSongId !== null;
+function MainPanel(): React.ReactNode {
+  const { activeComponent, selectedSongId } = useAppStore();
 
   return (
     <div className="flex flex-col flex-1 min-w-0 h-full">
       {/* Timeline area */}
-      {showTimeline && (
+      {selectedSongId !== null && (
         <div
           className="shrink-0"
           style={{
             borderBottom: '1px solid var(--border)',
           }}
         >
-          <TimelineVisualizer songId={selectedSongId!} />
+          <TimelineVisualizer songId={selectedSongId} />
         </div>
       )}
 
       {/* Content area */}
       <div className="flex-1 min-h-0 overflow-hidden">
-        {activeComponent === 'songs' ? (
-          <SongsView />
-        ) : activeComponent === 'song-designer' ? (
-          <SongDesignerView />
-        ) : activeComponent === 'moves' ? (
-          <MovesView />
-        ) : activeComponent === 'debug' ? (
-          <DebugView />
-        ) : (
-          <StubComponent
-            title={stubDescriptions[activeComponent]?.title ?? activeComponent}
-            description={stubDescriptions[activeComponent]?.description ?? ''}
-          />
-        )}
+        {renderActiveComponent(activeComponent)}
       </div>
     </div>
   );
