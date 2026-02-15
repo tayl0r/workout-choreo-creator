@@ -177,7 +177,53 @@ function TimelineVisualizer({ songId }: TimelineVisualizerProps) {
       setLoading(false);
     });
 
+    ws.on('decode', async () => {
+      const decodedData = ws.getDecodedData();
+      if (!decodedData || !bassWaveformRef.current) return;
+
+      try {
+        const bassBuffer = await filterBass(decodedData);
+        const wavBlob = audioBufferToWav(bassBuffer);
+
+        // Destroy previous bass instance if exists
+        if (bassWsRef.current) {
+          bassWsRef.current.destroy();
+        }
+
+        const bassWs = WaveSurfer.create({
+          container: bassWaveformRef.current,
+          waveColor: '#886633',
+          progressColor: '#dd8833',
+          cursorColor: '#dd8833',
+          cursorWidth: 2,
+          height: 80,
+          barWidth: 2,
+          barGap: 1,
+          barRadius: 1,
+          normalize: true,
+          interact: true,
+        });
+
+        bassWs.loadBlob(wavBlob);
+
+        // Clicking bass waveform seeks the main player
+        bassWs.on('interaction', (newTime: number) => {
+          if (wavesurferRef.current) {
+            wavesurferRef.current.seekTo(newTime / wavesurferRef.current.getDuration());
+          }
+        });
+
+        bassWsRef.current = bassWs;
+      } catch (err) {
+        console.warn('Bass filter failed:', err);
+      }
+    });
+
     return () => {
+      if (bassWsRef.current) {
+        bassWsRef.current.destroy();
+        bassWsRef.current = null;
+      }
       ws.stop();
       ws.destroy();
       wavesurferRef.current = null;
