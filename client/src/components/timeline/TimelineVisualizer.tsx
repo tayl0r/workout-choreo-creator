@@ -157,6 +157,13 @@ function TimelineVisualizer({ songId }: TimelineVisualizerProps) {
 
     ws.on('timeupdate', (time: number) => {
       setCurrentTime(time);
+      // Sync bass waveform cursor
+      if (bassWsRef.current) {
+        const dur = ws.getDuration();
+        if (dur > 0) {
+          bassWsRef.current.seekTo(time / dur);
+        }
+      }
     });
 
     ws.on('play', () => {
@@ -236,7 +243,28 @@ function TimelineVisualizer({ songId }: TimelineVisualizerProps) {
     if (wavesurferRef.current && isReady) {
       wavesurferRef.current.zoom(zoom * 50);
     }
+    if (bassWsRef.current && isReady) {
+      bassWsRef.current.zoom(zoom * 50);
+    }
   }, [zoom, isReady]);
+
+  // Sync scroll position between main and bass waveforms
+  useEffect(() => {
+    if (!isReady) return;
+    const mainContainer = waveformRef.current;
+    const bassContainer = bassWaveformRef.current;
+    if (!mainContainer || !bassContainer) return;
+
+    const mainScrollable = mainContainer.querySelector('div > div') as HTMLElement | null;
+    const bassScrollable = bassContainer.querySelector('div > div') as HTMLElement | null;
+    if (!mainScrollable || !bassScrollable) return;
+
+    const syncScroll = () => {
+      bassScrollable.scrollLeft = mainScrollable.scrollLeft;
+    };
+    mainScrollable.addEventListener('scroll', syncScroll);
+    return () => mainScrollable.removeEventListener('scroll', syncScroll);
+  }, [isReady, zoom]);
 
   // Draw beat markers via Regions plugin
   useEffect(() => {
