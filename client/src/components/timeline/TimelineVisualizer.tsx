@@ -26,7 +26,7 @@ async function filterBass(buffer: AudioBuffer): Promise<AudioBuffer> {
 
   const lowpass = offlineCtx.createBiquadFilter();
   lowpass.type = 'lowpass';
-  lowpass.frequency.value = 150;
+  lowpass.frequency.value = 80;
   lowpass.Q.value = 0.7;
 
   source.connect(lowpass);
@@ -195,6 +195,22 @@ function TimelineVisualizer({ songId }: TimelineVisualizerProps) {
       const message = err instanceof Error ? err.message : String(err);
       setError(`Failed to load audio: ${message}`);
       setLoading(false);
+    });
+
+    // Center the view on the seek position when clicking the waveform
+    ws.on('interaction', (newTime: number) => {
+      requestAnimationFrame(() => {
+        const scroller = getWsScroller(waveformRef.current);
+        if (!scroller) return;
+        const dur = ws.getDuration();
+        if (dur <= 0) return;
+        const center = scroller.clientWidth / 2;
+        scroller.scrollLeft = (scroller.scrollWidth * newTime / dur) - center;
+        const bassScroller = getWsScroller(bassWaveformRef.current);
+        if (bassScroller) {
+          bassScroller.scrollLeft = scroller.scrollLeft;
+        }
+      });
     });
 
     ws.on('decode', async () => {
