@@ -86,6 +86,8 @@ function TimelineVisualizer({ songId }: TimelineVisualizerProps) {
   const waveformRef = useRef<HTMLDivElement>(null);
   const wavesurferRef = useRef<WaveSurfer | null>(null);
   const regionsRef = useRef<RegionsPlugin | null>(null);
+  const bassWaveformRef = useRef<HTMLDivElement>(null);
+  const bassWsRef = useRef<WaveSurfer | null>(null);
 
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -280,6 +282,17 @@ function TimelineVisualizer({ songId }: TimelineVisualizerProps) {
         )}
 
         <div ref={waveformRef} className="w-full h-full" style={{ background: 'var(--bg-primary)' }} />
+      </div>
+
+      {/* Bass waveform */}
+      <div className="relative" style={{ height: 80, borderTop: '1px solid var(--border)' }}>
+        <div
+          className="absolute top-1 left-2 text-[10px] font-mono uppercase z-10 pointer-events-none"
+          style={{ color: 'var(--text-secondary)', opacity: 0.6 }}
+        >
+          bass
+        </div>
+        <div ref={bassWaveformRef} className="w-full h-full" style={{ background: 'var(--bg-primary)' }} />
       </div>
 
       {/* Transport controls */}
