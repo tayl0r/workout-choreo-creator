@@ -190,6 +190,10 @@ function TimelineVisualizer({ songId }: TimelineVisualizerProps) {
 
       try {
         const bassBuffer = await filterBass(decodedData);
+
+        // Guard against stale decode if song changed during filtering
+        if (wavesurferRef.current !== ws) return;
+
         const wavBlob = audioBufferToWav(bassBuffer);
 
         // Destroy previous bass instance if exists
@@ -216,7 +220,10 @@ function TimelineVisualizer({ songId }: TimelineVisualizerProps) {
         // Clicking bass waveform seeks the main player
         bassWs.on('interaction', (newTime: number) => {
           if (wavesurferRef.current) {
-            wavesurferRef.current.seekTo(newTime / wavesurferRef.current.getDuration());
+            const bassDuration = bassWs.getDuration();
+            if (bassDuration > 0) {
+              wavesurferRef.current.seekTo(newTime / bassDuration);
+            }
           }
         });
 
