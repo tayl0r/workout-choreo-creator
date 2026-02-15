@@ -229,6 +229,7 @@ router.post("/download", (req: Request, res: Response) => {
       bpm: bpm ?? 0,
       filepath: relativeFilepath,
       beats,
+      parts: [],
     };
 
     const dslContent = serializeSongFile(songFileData);

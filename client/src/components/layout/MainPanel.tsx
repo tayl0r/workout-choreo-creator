@@ -4,12 +4,9 @@ import TimelineVisualizer from '../timeline/TimelineVisualizer';
 import StubComponent from '../shared/StubComponent';
 import MovesView from '../moves/MovesView';
 import DebugView from '../debug/DebugView';
+import SongDesignerView from '../song-designer/SongDesignerView';
 
 const stubDescriptions: Record<string, { title: string; description: string }> = {
-  'song-designer': {
-    title: 'Song Designer',
-    description: 'design song structure with tracks, parts, and sequences.',
-  },
   'part-designer': {
     title: 'Part Designer',
     description: 'build parts from move sequences with timing and intensity.',
@@ -23,7 +20,7 @@ const stubDescriptions: Record<string, { title: string; description: string }> =
 function MainPanel() {
   const { activeComponent, selectedSongId } = useAppStore();
 
-  const showTimeline = activeComponent === 'songs' && selectedSongId !== null;
+  const showTimeline = selectedSongId !== null;
 
   return (
     <div className="flex flex-col flex-1 min-w-0 h-full">
@@ -43,14 +40,16 @@ function MainPanel() {
       <div className="flex-1 min-h-0 overflow-hidden">
         {activeComponent === 'songs' ? (
           <SongsView />
+        ) : activeComponent === 'song-designer' ? (
+          <SongDesignerView />
         ) : activeComponent === 'moves' ? (
           <MovesView />
         ) : activeComponent === 'debug' ? (
           <DebugView />
         ) : (
           <StubComponent
-            title={stubDescriptions[activeComponent].title}
-            description={stubDescriptions[activeComponent].description}
+            title={stubDescriptions[activeComponent]?.title ?? activeComponent}
+            description={stubDescriptions[activeComponent]?.description ?? ''}
           />
         )}
       </div>

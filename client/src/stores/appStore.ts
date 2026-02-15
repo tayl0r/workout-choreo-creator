@@ -42,7 +42,8 @@ export const useAppStore = create<AppState>()(
       activeComponent: initial.component,
       setActiveComponent: (c) =>
         set((state) => {
-          updateHash(c, c === 'songs' ? state.selectedSongId : null);
+          const keepSongId = c === 'songs' || c === 'song-designer';
+          updateHash(c, keepSongId ? state.selectedSongId : null);
           return { activeComponent: c };
         }),
       sidebarOpen: true,
