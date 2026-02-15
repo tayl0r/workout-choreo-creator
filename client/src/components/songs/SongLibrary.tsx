@@ -3,12 +3,7 @@ import { fetchSongs, updateSong, deleteSong } from '../../services/api';
 import { useAppStore } from '../../stores/appStore';
 import { pushError } from '../../stores/errorStore';
 import type { Song } from '../../types';
-
-function formatDuration(seconds: number): string {
-  const m = Math.floor(seconds / 60);
-  const s = Math.floor(seconds % 60);
-  return `${m}:${s.toString().padStart(2, '0')}`;
-}
+import { formatTime as formatDuration } from '../../utils/formatTime';
 
 interface SongLibraryProps {
   refreshKey: number;

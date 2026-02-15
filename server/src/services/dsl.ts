@@ -1,3 +1,5 @@
+import { nanoid } from "nanoid";
+
 // ----- Song DSL -----
 
 export type Stance = "Right" | "Left" | "Centered";
@@ -138,8 +140,6 @@ export function serializeSongFile(song: SongFile): string {
 }
 
 // ----- Move DSL -----
-
-import { nanoid } from "nanoid";
 
 export interface Move {
   id: string;

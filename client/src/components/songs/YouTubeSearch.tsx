@@ -2,12 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { searchYouTube, downloadSong } from '../../services/api';
 import { pushError } from '../../stores/errorStore';
 import type { YouTubeResult } from '../../types';
-
-function formatDuration(seconds: number): string {
-  const m = Math.floor(seconds / 60);
-  const s = Math.floor(seconds % 60);
-  return `${m}:${s.toString().padStart(2, '0')}`;
-}
+import { formatTime as formatDuration } from '../../utils/formatTime';
 
 function formatCount(n: number): string {
   if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(1)}B`;
@@ -209,7 +204,6 @@ function YouTubeSearch({ onDownloadComplete }: YouTubeSearchProps) {
                     ) : (
                       <button
                         onClick={() => handleDownload(result)}
-                        disabled={false}
                         className="flex items-center justify-center w-8 h-8 rounded cursor-pointer border-none outline-none transition-colors duration-150"
                         style={{
                           background: 'var(--bg-tertiary)',

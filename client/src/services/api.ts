@@ -40,10 +40,7 @@ export async function deleteSong(id: number): Promise<void> {
   const response = await fetch(`${API_BASE}/songs/${id}`, {
     method: 'DELETE',
   });
-  if (!response.ok) {
-    const errorBody = await response.text();
-    throw new Error(errorBody || response.statusText);
-  }
+  await handleResponse<void>(response);
 }
 
 export function getSongAudioUrl(id: number): string {
@@ -105,10 +102,7 @@ export async function deleteMove(id: string): Promise<void> {
   const response = await fetch(`${API_BASE}/moves/${encodeURIComponent(id)}`, {
     method: 'DELETE',
   });
-  if (!response.ok) {
-    const errorBody = await response.text();
-    throw new Error(errorBody || response.statusText);
-  }
+  await handleResponse<void>(response);
 }
 
 // ----- Parts API -----
@@ -147,8 +141,5 @@ export async function deletePart(songId: number, partId: string): Promise<void> 
   const response = await fetch(`${API_BASE}/songs/${songId}/parts/${encodeURIComponent(partId)}`, {
     method: 'DELETE',
   });
-  if (!response.ok) {
-    const errorBody = await response.text();
-    throw new Error(errorBody || response.statusText);
-  }
+  await handleResponse<void>(response);
 }

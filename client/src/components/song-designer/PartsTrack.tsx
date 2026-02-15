@@ -11,7 +11,7 @@ interface PartsTrackProps {
   onNameSelect: (id: string, name: string, cloneFrom?: SongPart) => void;
 }
 
-export default function PartsTrack({ parts, onUpdate, onDelete, onNameSelect }: PartsTrackProps) {
+export default function PartsTrack({ parts, onUpdate, onDelete, onNameSelect }: PartsTrackProps): React.ReactNode {
   const { pxPerSec, scrollLeft, totalWidth, beats } = useTimelineStore();
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -33,10 +33,6 @@ export default function PartsTrack({ parts, onUpdate, onDelete, onNameSelect }: 
       style={{
         maxHeight: 200,
         scrollbarWidth: 'none',
-      }}
-      onScroll={(e) => {
-        // If user scrolls the parts track directly, don't fight with the sync
-        // (In practice, the timeline scroll drives this via the store)
       }}
     >
       <div

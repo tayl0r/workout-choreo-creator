@@ -3,15 +3,16 @@ import { useAppStore } from '../../stores/appStore';
 import { useTimelineStore } from '../../stores/timelineStore';
 import { fetchParts, createPart, updatePart, deletePart } from '../../services/api';
 import { pushError } from '../../stores/errorStore';
+import { snapToBeat } from '../../utils/snapToBeat';
 import PartsTrack from './PartsTrack';
 import type { PartEntry } from './PartPill';
 import type { SongPart } from '../../types';
 
 let tempIdCounter = 0;
 
-export default function SongDesignerView() {
+export default function SongDesignerView(): React.ReactNode {
   const { selectedSongId } = useAppStore();
-  const { beats, currentTime } = useTimelineStore();
+  const { beats } = useTimelineStore();
   const [parts, setParts] = useState<PartEntry[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -40,27 +41,10 @@ export default function SongDesignerView() {
 
     // Start after the last existing part, or at 0:00
     const sorted = [...parts].sort((a, b) => a.part.startTime - b.part.startTime);
-    let startTime = sorted.length > 0 ? sorted[sorted.length - 1].part.endTime : 0;
+    const rawStart = sorted.length > 0 ? sorted[sorted.length - 1].part.endTime : 0;
 
-    // Snap start to nearest beat
-    if (beats.length > 0) {
-      let closest = beats[0];
-      for (const b of beats) {
-        if (Math.abs(b - startTime) < Math.abs(closest - startTime)) closest = b;
-      }
-      startTime = closest;
-    }
-
-    let endTime = startTime + DEFAULT_DURATION;
-
-    // Snap end to nearest beat
-    if (beats.length > 0) {
-      let closest = beats[0];
-      for (const b of beats) {
-        if (Math.abs(b - endTime) < Math.abs(closest - endTime)) closest = b;
-      }
-      endTime = closest;
-    }
+    const startTime = snapToBeat(rawStart, beats);
+    const endTime = snapToBeat(startTime + DEFAULT_DURATION, beats);
 
     const tempId = `_temp_${++tempIdCounter}`;
     const newPart: SongPart = {
@@ -72,7 +56,7 @@ export default function SongDesignerView() {
     };
 
     setParts((prev) => [...prev, { part: newPart, isSaved: false }]);
-  }, [selectedSongId, currentTime, beats, parts]);
+  }, [selectedSongId, beats, parts]);
 
   const handleUpdate = useCallback(
     (id: string, changes: Partial<SongPart>) => {
@@ -157,6 +141,8 @@ export default function SongDesignerView() {
     [selectedSongId, parts],
   );
 
+  const savedCount = parts.filter((p) => p.isSaved).length;
+
   if (!selectedSongId) {
     return (
       <div className="flex items-center justify-center h-full" style={{ color: 'var(--text-secondary)' }}>
@@ -190,7 +176,7 @@ export default function SongDesignerView() {
             Song Parts
           </span>
           <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-            {parts.filter((p) => p.isSaved).length} part{parts.filter((p) => p.isSaved).length !== 1 ? 's' : ''}
+            {savedCount} part{savedCount !== 1 ? 's' : ''}
           </span>
         </div>
         <button
