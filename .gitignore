@@ -2,6 +2,7 @@ node_modules/
 dist/
 data/songs/
 data/files/
+data-test/
 *.db
 .env
 scripts/.venv/

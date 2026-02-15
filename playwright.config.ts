@@ -1,6 +1,7 @@
 import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
+  globalSetup: './e2e/global-setup.ts',
   testDir: './e2e',
   timeout: 30_000,
   use: {
@@ -11,7 +12,8 @@ export default defineConfig({
     {
       command: 'pnpm run dev:server',
       port: 3001,
-      reuseExistingServer: true,
+      reuseExistingServer: false,
+      env: { DATA_DIR: 'data-test' },
     },
     {
       command: 'pnpm run dev:client',

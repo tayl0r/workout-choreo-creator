@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import fs from 'node:fs';
 import path from 'node:path';
 
-const MOVES_FILE = path.join(__dirname, '..', 'data', 'files', 'moves', 'all.moves');
+const MOVES_FILE = path.join(__dirname, '..', 'data-test', 'files', 'moves', 'all.moves');
 
 test.beforeEach(async () => {
   // Delete the moves file so each test starts with fresh seed data

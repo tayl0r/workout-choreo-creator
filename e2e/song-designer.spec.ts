@@ -2,7 +2,7 @@ import { test, expect, type Page } from '@playwright/test';
 import fs from 'node:fs';
 import path from 'node:path';
 
-const SONG_FILES_DIR = path.join(__dirname, '..', 'data', 'files', 'songs');
+const SONG_FILES_DIR = path.join(__dirname, '..', 'data-test', 'files', 'songs');
 
 /** Strip any #BODY section from all .song files to start clean. */
 function cleanSongParts() {

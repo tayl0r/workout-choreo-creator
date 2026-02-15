@@ -17,7 +17,7 @@ dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 import express from "express";
 import cors from "cors";
 import fs from "node:fs";
-import { initDb, PROJECT_ROOT } from "./db/index.js";
+import { initDb, DATA_DIR } from "./db/index.js";
 import songsRouter from "./routes/songs.js";
 import youtubeRouter from "./routes/youtube.js";
 import movesRouter from "./routes/moves.js";
@@ -36,11 +36,10 @@ app.use(
 app.use(express.json());
 
 // ----- Ensure data directories exist -----
-const dataDir = path.join(PROJECT_ROOT, "data");
 const dataDirs = [
-  path.join(dataDir, "songs"),
-  path.join(dataDir, "files", "songs"),
-  path.join(dataDir, "files", "moves"),
+  path.join(DATA_DIR, "songs"),
+  path.join(DATA_DIR, "files", "songs"),
+  path.join(DATA_DIR, "files", "moves"),
 ];
 
 for (const dir of dataDirs) {
@@ -72,7 +71,7 @@ app.get("/api/health", (_req, res) => {
 // ----- Start server -----
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
-  console.log(`Project root: ${PROJECT_ROOT}`);
+  console.log(`Data directory: ${DATA_DIR}`);
 });
 
 export default app;

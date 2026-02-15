@@ -2,13 +2,12 @@ import { Router, Request, Response } from "express";
 import path from "node:path";
 import fs from "node:fs";
 import { nanoid } from "nanoid";
-import { getDb, PROJECT_ROOT } from "../db/index.js";
+import { getDb, DATA_DIR } from "../db/index.js";
 import { parseSongFile, serializeSongFile } from "../services/dsl.js";
 import type { SongPart, Stance } from "../services/dsl.js";
 
 const router = Router();
 
-const DATA_DIR = path.join(PROJECT_ROOT, "data");
 const SONG_FILES_DIR = path.join(DATA_DIR, "files", "songs");
 
 const VALID_STANCES: Stance[] = ["Right", "Left", "Centered"];
