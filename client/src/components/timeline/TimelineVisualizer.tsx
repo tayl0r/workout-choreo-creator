@@ -4,6 +4,11 @@ import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.esm.js';
 import { fetchSong, getSongAudioUrl } from '../../services/api';
 import { useAppStore } from '../../stores/appStore';
 
+/** WaveSurfer v7 renders inside a Shadow DOM. The scrollable element is .scroll inside the shadow root. */
+function getWsScroller(container: HTMLDivElement | null): HTMLElement | null {
+  return container?.firstElementChild?.shadowRoot?.querySelector('.scroll') as HTMLElement | null;
+}
+
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);
@@ -166,8 +171,8 @@ function TimelineVisualizer({ songId }: TimelineVisualizerProps) {
           bassWsRef.current.seekTo(time / dur);
         }
         // Sync scroll position (bass doesn't auto-scroll since it's not playing)
-        const mainScroll = waveformRef.current?.firstElementChild as HTMLElement | null;
-        const bassScroll = bassWaveformRef.current?.firstElementChild as HTMLElement | null;
+        const mainScroll = getWsScroller(waveformRef.current);
+        const bassScroll = getWsScroller(bassWaveformRef.current);
         if (mainScroll && bassScroll) {
           bassScroll.scrollLeft = mainScroll.scrollLeft;
         }
@@ -229,8 +234,8 @@ function TimelineVisualizer({ songId }: TimelineVisualizerProps) {
         bassWs.on('ready', () => {
           bassWs.zoom(zoomRef.current * 50);
           // Set up scroll event listener for manual scrolling
-          const mainScroll = waveformRef.current?.firstElementChild as HTMLElement | null;
-          const bassScroll = bassWaveformRef.current?.firstElementChild as HTMLElement | null;
+          const mainScroll = getWsScroller(waveformRef.current);
+          const bassScroll = getWsScroller(bassWaveformRef.current);
           if (mainScroll && bassScroll) {
             const syncScroll = () => {
               bassScroll.scrollLeft = mainScroll.scrollLeft;
@@ -281,8 +286,8 @@ function TimelineVisualizer({ songId }: TimelineVisualizerProps) {
       bassWsRef.current.zoom(zoom * 50);
       // After zoom, sync scroll positions (zoom changes waveform width)
       requestAnimationFrame(() => {
-        const mainScroll = waveformRef.current?.firstElementChild as HTMLElement | null;
-        const bassScroll = bassWaveformRef.current?.firstElementChild as HTMLElement | null;
+        const mainScroll = getWsScroller(waveformRef.current);
+        const bassScroll = getWsScroller(bassWaveformRef.current);
         if (mainScroll && bassScroll) {
           bassScroll.scrollLeft = mainScroll.scrollLeft;
         }
