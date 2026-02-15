@@ -1,4 +1,4 @@
-import type { Song, YouTubeResult, MoveEntry } from '../types';
+import type { Song, YouTubeResult, MoveEntry, SongPart } from '../types';
 
 const API_BASE = '/api';
 
@@ -103,6 +103,48 @@ export async function suggestMoveDescription(name: string, hint?: string): Promi
 
 export async function deleteMove(id: string): Promise<void> {
   const response = await fetch(`${API_BASE}/moves/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(errorBody || response.statusText);
+  }
+}
+
+// ----- Parts API -----
+
+export async function fetchParts(songId: number): Promise<SongPart[]> {
+  const response = await fetch(`${API_BASE}/songs/${songId}/parts`);
+  return handleResponse<SongPart[]>(response);
+}
+
+export async function createPart(
+  songId: number,
+  data: { name: string; startTime: number; endTime: number; stance: string },
+): Promise<SongPart> {
+  const response = await fetch(`${API_BASE}/songs/${songId}/parts`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return handleResponse<SongPart>(response);
+}
+
+export async function updatePart(
+  songId: number,
+  partId: string,
+  data: Partial<{ name: string; startTime: number; endTime: number; stance: string }>,
+): Promise<SongPart> {
+  const response = await fetch(`${API_BASE}/songs/${songId}/parts/${encodeURIComponent(partId)}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return handleResponse<SongPart>(response);
+}
+
+export async function deletePart(songId: number, partId: string): Promise<void> {
+  const response = await fetch(`${API_BASE}/songs/${songId}/parts/${encodeURIComponent(partId)}`, {
     method: 'DELETE',
   });
   if (!response.ok) {

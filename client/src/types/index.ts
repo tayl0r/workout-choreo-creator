@@ -27,4 +27,14 @@ export interface MoveEntry {
   raw: string;
 }
 
+export type Stance = 'Right' | 'Left' | 'Centered';
+
+export interface SongPart {
+  id: string;
+  name: string;
+  startTime: number;
+  endTime: number;
+  stance: Stance;
+}
+
 export type ActiveComponent = 'songs' | 'song-designer' | 'part-designer' | 'sequences' | 'moves' | 'debug';

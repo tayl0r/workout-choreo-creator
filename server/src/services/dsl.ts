@@ -1,5 +1,15 @@
 // ----- Song DSL -----
 
+export type Stance = "Right" | "Left" | "Centered";
+
+export interface SongPart {
+  id: string;
+  name: string;
+  startTime: number;
+  endTime: number;
+  stance: Stance;
+}
+
 export interface SongFile {
   name: string;
   artist: string;
@@ -7,6 +17,7 @@ export interface SongFile {
   bpm: number;
   filepath: string;
   beats: number[];
+  parts: SongPart[];
 }
 
 /**
@@ -20,17 +31,47 @@ export interface SongFile {
  *   filepath <relative path>
  *   beats <space-separated timestamps>
  */
+const PART_LINE_RE = /^(\d+\.?\d*)\s+(\d+\.?\d*)\s+(Right|Left|Centered)\s+(.+?)\s+@(\S+)$/;
+
 export function parseSongFile(content: string): SongFile {
-  const lines = content.split("\n").filter((line) => line.trim().length > 0);
+  const lines = content.split("\n");
   const result: Partial<SongFile> = {};
+  const parts: SongPart[] = [];
+  let inBody = false;
+  let inParts = false;
 
-  for (const line of lines) {
-    const trimmed = line.trim();
-    const spaceIndex = trimmed.indexOf(" ");
+  for (const rawLine of lines) {
+    const trimmed = rawLine.trim();
 
-    if (spaceIndex === -1) {
+    if (trimmed === "#BODY") {
+      inBody = true;
       continue;
     }
+
+    if (inBody) {
+      if (trimmed === "parts:") {
+        inParts = true;
+        continue;
+      }
+      if (inParts && trimmed.length > 0) {
+        const match = trimmed.match(PART_LINE_RE);
+        if (match) {
+          parts.push({
+            startTime: parseFloat(match[1]),
+            endTime: parseFloat(match[2]),
+            stance: match[3] as Stance,
+            name: match[4],
+            id: match[5],
+          });
+        }
+      }
+      continue;
+    }
+
+    if (trimmed.length === 0) continue;
+
+    const spaceIndex = trimmed.indexOf(" ");
+    if (spaceIndex === -1) continue;
 
     const key = trimmed.substring(0, spaceIndex).toLowerCase();
     const value = trimmed.substring(spaceIndex + 1).trim();
@@ -67,6 +108,7 @@ export function parseSongFile(content: string): SongFile {
     bpm: result.bpm ?? 0,
     filepath: result.filepath ?? "",
     beats: result.beats ?? [],
+    parts,
   };
 }
 
@@ -82,6 +124,16 @@ export function serializeSongFile(song: SongFile): string {
     `filepath ${song.filepath}`,
     `beats ${song.beats.join(" ")}`,
   ];
+
+  if (song.parts.length > 0) {
+    lines.push("");
+    lines.push("#BODY");
+    lines.push("parts:");
+    for (const part of song.parts) {
+      lines.push(`${part.startTime} ${part.endTime} ${part.stance} ${part.name} @${part.id}`);
+    }
+  }
+
   return lines.join("\n") + "\n";
 }
 
@@ -209,14 +261,6 @@ export interface SequenceFile {
   bpm: number;
   moves: { name: string; beatCount: number }[];
   timing: number[];
-}
-
-export interface PartFile {
-  name: string;
-  song: string;
-  startBeat: number;
-  endBeat: number;
-  sequences: { name: string; offset: number }[];
 }
 
 export interface ChoreoFile {

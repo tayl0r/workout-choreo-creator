@@ -3,6 +3,7 @@ import WaveSurfer from 'wavesurfer.js';
 import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.esm.js';
 import { fetchSong, getSongAudioUrl } from '../../services/api';
 import { useAppStore } from '../../stores/appStore';
+import { useTimelineStore } from '../../stores/timelineStore';
 
 /** WaveSurfer v7 renders inside a Shadow DOM. The scrollable element is .scroll inside the shadow root. */
 function getWsScroller(container: HTMLDivElement | null): HTMLElement | null {
@@ -114,6 +115,7 @@ function TimelineVisualizer({ songId }: TimelineVisualizerProps) {
         const song = await fetchSong(songId);
         if (!cancelled && song.beats) {
           setBeats(song.beats);
+          useTimelineStore.getState().setSync({ beats: song.beats });
         }
       } catch {
         // Beat data is optional, don't fail on this
@@ -157,13 +159,41 @@ function TimelineVisualizer({ songId }: TimelineVisualizerProps) {
     regionsRef.current = regions;
 
     ws.on('ready', () => {
-      setDuration(ws.getDuration());
+      const dur = ws.getDuration();
+      setDuration(dur);
       setIsReady(true);
       setLoading(false);
+
+      // Set initial zoom to fit whole track
+      const scroller = getWsScroller(waveformRef.current);
+      const containerWidth = scroller?.clientWidth ?? 800;
+      const fitZoom = dur > 0 ? containerWidth / (dur * 50) : 1;
+      setZoom(fitZoom);
+      zoomRef.current = fitZoom;
+      ws.zoom(fitZoom * 50);
+
+      // Publish initial sync state
+      const pxPerSec = fitZoom * 50;
+      useTimelineStore.getState().setSync({
+        duration: ws.getDuration(),
+        pxPerSec,
+        totalWidth: scroller?.scrollWidth ?? 0,
+        scrollLeft: scroller?.scrollLeft ?? 0,
+      });
+
+      // Sync scrollLeft on scroll
+      if (scroller) {
+        const onScroll = () => {
+          useTimelineStore.getState().setSync({ scrollLeft: scroller.scrollLeft });
+        };
+        scroller.addEventListener('scroll', onScroll);
+        ws.on('destroy', () => scroller.removeEventListener('scroll', onScroll));
+      }
     });
 
     ws.on('timeupdate', (time: number) => {
       setCurrentTime(time);
+      useTimelineStore.getState().setSync({ currentTime: time });
       // Sync bass waveform cursor and scroll
       if (bassWsRef.current) {
         const dur = ws.getDuration();
@@ -297,6 +327,15 @@ function TimelineVisualizer({ songId }: TimelineVisualizerProps) {
   useEffect(() => {
     if (wavesurferRef.current && isReady) {
       wavesurferRef.current.zoom(zoom * 50);
+      // Publish updated zoom/width to timeline store
+      requestAnimationFrame(() => {
+        const scroller = getWsScroller(waveformRef.current);
+        useTimelineStore.getState().setSync({
+          pxPerSec: zoom * 50,
+          totalWidth: scroller?.scrollWidth ?? 0,
+          scrollLeft: scroller?.scrollLeft ?? 0,
+        });
+      });
     }
     if (bassWsRef.current && isReady) {
       bassWsRef.current.zoom(zoom * 50);
@@ -354,13 +393,24 @@ function TimelineVisualizer({ songId }: TimelineVisualizerProps) {
     wavesurferRef.current.seekTo(newTime / dur);
   }, [isReady]);
 
+  // Minimum zoom: whole track fits in view. pxPerSec = zoom * 50, so
+  // containerWidth >= duration * zoom * 50  →  zoom >= containerWidth / (duration * 50)
+  // We invert: minZoom = containerWidth / (duration * 50), but we want the track
+  // to fit, so minZoom makes totalWidth <= containerWidth.
+  const minZoom = (() => {
+    if (!duration || duration <= 0) return 0.1;
+    const scroller = getWsScroller(waveformRef.current);
+    const containerWidth = scroller?.clientWidth ?? 800;
+    return containerWidth / (duration * 50);
+  })();
+
   const handleZoomIn = useCallback(() => {
     setZoom((z) => Math.min(z * 1.5, 20));
   }, []);
 
   const handleZoomOut = useCallback(() => {
-    setZoom((z) => Math.max(z / 1.5, 0.5));
-  }, []);
+    setZoom((z) => Math.max(z / 1.5, minZoom));
+  }, [minZoom]);
 
   const handleZoomReset = useCallback(() => {
     setZoom(1);
@@ -468,7 +518,9 @@ function TimelineVisualizer({ songId }: TimelineVisualizerProps) {
             }}
             title="Reset zoom"
           >
-            {Math.round(zoom * 100)}%
+            <span className="font-mono tabular-nums" style={{ display: 'inline-block', width: '5ch', textAlign: 'center' }}>
+              {String(Math.round(zoom * 100)).padStart(4, '\u2007')}%
+            </span>
           </button>
           <TransportButton onClick={handleZoomIn} title="Zoom in" disabled={!isReady}>
             +
