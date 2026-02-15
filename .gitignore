@@ -1,0 +1,8 @@
+node_modules/
+dist/
+data/songs/
+data/files/
+*.db
+.env
+scripts/.venv/
+.DS_Store
