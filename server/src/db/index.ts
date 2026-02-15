@@ -6,7 +6,12 @@ import { fileURLToPath } from "node:url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const PROJECT_ROOT = path.resolve(__dirname, "../../..");
-const DB_PATH = path.join(PROJECT_ROOT, "data", "choreo.db");
+
+const DATA_DIR = process.env.DATA_DIR
+  ? path.resolve(PROJECT_ROOT, process.env.DATA_DIR)
+  : path.join(PROJECT_ROOT, "data");
+
+const DB_PATH = path.join(DATA_DIR, "choreo.db");
 
 let db: Database.Database;
 
@@ -49,4 +54,4 @@ function runMigrations(db: Database.Database): void {
   `);
 }
 
-export { PROJECT_ROOT };
+export { PROJECT_ROOT, DATA_DIR };

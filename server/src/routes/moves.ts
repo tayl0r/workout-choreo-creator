@@ -2,7 +2,7 @@ import { Router, Request, Response } from "express";
 import path from "node:path";
 import fs from "node:fs";
 import { nanoid } from "nanoid";
-import { PROJECT_ROOT } from "../db/index.js";
+import { DATA_DIR } from "../db/index.js";
 import {
   parseMovesFile,
   serializeMovesFile,
@@ -15,7 +15,7 @@ import { SEED_MOVES } from "../services/seedMoves.js";
 
 const router = Router();
 
-const MOVES_DIR = path.join(PROJECT_ROOT, "data", "files", "moves");
+const MOVES_DIR = path.join(DATA_DIR, "files", "moves");
 const MOVES_FILE = path.join(MOVES_DIR, "all.moves");
 
 /**

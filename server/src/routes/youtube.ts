@@ -3,12 +3,11 @@ import { execSync } from "node:child_process";
 import path from "node:path";
 import fs from "node:fs";
 import { v4 as uuidv4 } from "uuid";
-import { getDb, PROJECT_ROOT } from "../db/index.js";
+import { getDb, DATA_DIR, PROJECT_ROOT } from "../db/index.js";
 import { serializeSongFile, SongFile } from "../services/dsl.js";
 
 const router = Router();
 
-const DATA_DIR = path.join(PROJECT_ROOT, "data");
 const SONGS_DIR = path.join(DATA_DIR, "songs");
 const SONG_FILES_DIR = path.join(DATA_DIR, "files", "songs");
 const SCRIPTS_DIR = path.join(PROJECT_ROOT, "scripts");
